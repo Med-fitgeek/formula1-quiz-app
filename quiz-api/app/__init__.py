@@ -1,0 +1,11 @@
+from flask import Flask
+from app.path.questions import bp as quiz_bp
+from app.db_init import initialize_database
+
+def create_app():
+    app = Flask(__name__)
+    
+    # Enregistrer le Blueprint
+    app.register_blueprint(quiz_bp, url_prefix='/')
+    
+    return app
