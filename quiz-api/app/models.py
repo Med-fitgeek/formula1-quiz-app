@@ -30,4 +30,11 @@ def initialize_database():
                 FOREIGN KEY (question_id) REFERENCES question (id)
             )
         """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS participations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                player_name TEXT NOT NULL,
+                score INTEGER NOT NULL
+            )
+        """)
         conn.commit()
