@@ -1,8 +1,9 @@
 from flask import Blueprint, request, jsonify
 from app.jwt_utils import build_token, decode_token
 from app.auth import authenticate
-from app.questions_services import add_question_to_db, delete_question_from_db, delete_all_questions_from_db
+from app.questions_services import add_question_to_db, delete_question_by_position_from_db, delete_all_questions_from_db, update_question_in_db,get_quiz_info_from_db
 import hashlib
+from app.models import get_db_connection
 
 # Créer un Blueprint pour les routes
 bp = Blueprint('quiz', __name__)
@@ -16,7 +17,13 @@ def hello_world():
 # 3 - Get Quiz
 @bp.route('/quiz-info', methods=['GET'])
 def GetQuizInfo():
-    return {"size": 0, "scores": []}, 200
+    try:
+        info = get_quiz_info_from_db()
+        return jsonify(info), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 
 # 4 - Authentification
 @bp.route('/login', methods=['POST'])
@@ -69,18 +76,21 @@ def add_question():
         return jsonify({"error": str(e)}), 500
 
 # 6 - Delete question
-@bp.route('/questions/<int:id>', methods=['DELETE'])
-def delete_question(id):
+@bp.route('/questions/<int:position>', methods=['DELETE'])
+def delete_question(position):
     try:
         authenticate()
 
-        # Appeler la fonction du service pour supprimer la question
-        delete_question_from_db(id)
+        # Appeler la fonction pour supprimer la question à la position donnée
+        delete_question_by_position_from_db(position)
 
-        return jsonify({"message": f"Question avec id {id} supprimée avec succès"}), 204
+        return jsonify({"message": f"Question à la position {position} supprimée avec succès"}), 204
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+
 
 # 7 - Delete all questions
 @bp.route('/questions/all', methods=['DELETE'])
@@ -92,6 +102,88 @@ def delete_all_questions():
         delete_all_questions_from_db()
 
         return jsonify({"message": "Toutes les questions ont été supprimées avec succès"}), 204
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# 8 - Get all questions
+@bp.route('/questions', methods=['GET'])
+def get_questions_by_position():
+    try:
+        # Récupérer la position depuis les paramètres de la requête
+        position = request.args.get('position', type=int)
+
+        # Vérifier si la position est donnée
+        if position is None:
+            return jsonify({"error": "Le paramètre 'position' est manquant"}), 400
+
+        # Récupérer la question avec cette position
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id, titre, texte, image, position
+            FROM question
+            WHERE position = ?
+        """, (position,))
+        question = cursor.fetchone()
+
+        # Si aucune question n'est trouvée pour cette position
+        if not question:
+            return jsonify({"error": f"Aucune question trouvée pour la position {position}"}), 404
+
+        # Ajouter les réponses possibles à la question
+        cursor.execute("""
+            SELECT answer_text, is_correct
+            FROM answers
+            WHERE question_id = ?
+        """, (question["id"],))
+        possible_answers = cursor.fetchall()
+
+        # Préparer la réponse avec le format attendu
+        response = {
+            "id": question["id"],
+            "title": question["titre"],
+            "text": question["texte"],
+            "position": question["position"],
+            "image": question["image"],
+            "possibleAnswers": [
+                {"text": answer["answer_text"], "isCorrect": bool(answer["is_correct"])}
+                for answer in possible_answers
+            ]
+        }
+
+        conn.close()
+        return jsonify(response), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# 6 - Update question at position (avec authentification)
+@bp.route('/questions/<int:question_id>', methods=['PUT'])
+def update_question(question_id):
+    try:
+        authenticate()
+
+        payload = request.get_json()
+        required_fields = ['title', 'text', 'image', 'position', 'possibleAnswers']
+
+        # Vérification des champs requis
+        if not all(field in payload for field in required_fields):
+            return jsonify({"error": "Champs manquants"}), 400
+
+        # Extraire les données
+        title = payload['title']
+        text = payload['text']
+        image = payload['image']
+        new_position = payload['position']
+        possible_answers = payload['possibleAnswers']
+
+        # Appeler la fonction du service pour mettre à jour la question
+        update_question_in_db(question_id, title, text, image, new_position, possible_answers)
+
+        # Retourner une réponse vide avec le statut 204
+        return '', 204
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
