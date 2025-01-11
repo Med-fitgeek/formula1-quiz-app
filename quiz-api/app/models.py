@@ -16,11 +16,12 @@ def initialize_database():
             CREATE TABLE IF NOT EXISTS question (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 titre TEXT NOT NULL,
-                texte TEXT,
-                image TEXT,
+                texte,
+                image,
                 position INTEGER
             )
         """)
+
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS answers (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
