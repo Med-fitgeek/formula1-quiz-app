@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  backend:
+    image: quiz-local-api
+    build:
+      context: ./quiz-api  # Chemin vers votre backend
+    ports:
+      - "5000:5000"       # Expose le backend sur le port 5000
+    environment:
+      - FLASK_ENV=production
+    networks:
+      - quiz-network
+
+  frontend:
+    image: quiz-local-ui
+    build:
+      context: ./quiz-ui  # Chemin vers votre frontend
+    ports:
+      - "3000:80"          # Expose le frontend sur le port 3000
+    environment:
+      - VITE_API_URL=http://backend:5000  # Le frontend utilise 'backend' pour l'API
+    networks:
+      - quiz-network
+
+networks:
+  quiz-network:
+    driver: bridge
