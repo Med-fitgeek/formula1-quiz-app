@@ -1,33 +1,38 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import quizApiService from '@/services/QuizApiService';
+import participationStorageService from '@/services/ParticipationStorageService';
 
-const registeredScores = ref([]);
+const registeredParticipations = ref([]);
 
 onMounted(async () => {
   try {
-    const response = await quizApiService.getQuizInfo();
-    if (response && response.data) {
-      registeredScores.value = response.data.scores; // Adaptez en fonction du format de vos données
+    const response = await participationStorageService.getParticipations();
+    console.log("Participations récupérées :", response);
+
+    if (response && response.length > 0) {
+      registeredParticipations.value = response;
+    } else {
+      console.warn("Aucune participation trouvée.");
     }
   } catch (error) {
-    console.error('Erreur lors de la récupération des scores : ', error);
+    console.error("Erreur lors de la récupération des scores :", error);
   }
 });
+
 </script>
 
 <template>
   <div class="container mt-4">
-    <h1 class="text-center">Home Page</h1>
-    <h2 class="text-secondary">Scores enregistrés :</h2>
-    <div v-if="registeredScores.length > 0" class="list-group">
+    <h1 class="text-center">Accueil</h1>
+    <h2 class="text-secondary">Les meilleurs scores enregistrés :</h2>
+    <div v-if="registeredParticipations.length > 0" class="list-group">
       <div
-        v-for="scoreEntry in registeredScores"
+        v-for="scoreEntry in registeredParticipations"
         v-bind:key="scoreEntry.date"
         class="list-group-item d-flex justify-content-between align-items-center"
       >
         <span>{{ scoreEntry.playerName }}</span>
-        <span class="badge bg-success">{{ scoreEntry.score }}</span>
+        <span class="badge bg-success">score : {{ scoreEntry.score }}</span>
       </div>
     </div>
     <div v-else class="alert alert-warning mt-3">
@@ -61,6 +66,6 @@ onMounted(async () => {
 }
 
 .start-quiz-btn:hover {
-  background-color: #ffde59;
+  background-color: #c09e18;
 }
 </style>

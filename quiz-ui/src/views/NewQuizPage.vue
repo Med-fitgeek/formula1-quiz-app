@@ -11,7 +11,6 @@
           placeholder="Entrez votre nom"
           v-model="username"
         />
-        <p>{{ username }}</p>
       </div>
       <button type="button" class="btn" @click="launchNewQuiz">
         Démarrer le quiz
@@ -55,5 +54,17 @@ function launchNewQuiz() {
 
 .btn:hover {
   background-color: #ffde59;
+}
+
+input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  margin-right: 10px;
+  border: 1px solid #918e8e;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #fff;
+  background-color: #282828;
 }
 </style>

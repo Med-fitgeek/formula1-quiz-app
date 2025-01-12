@@ -171,4 +171,123 @@ def update_question_in_db(question_id, title, text, image, new_position, possibl
     except Exception as e:
         raise Exception(f"Erreur dans la mise à jour de la question : {str(e)}")
 
+def get_all_questions_from_db():
+    """
+    Récupère toutes les questions avec leurs réponses associées.
+    """
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
+        # Récupérer toutes les questions
+        cursor.execute("SELECT * FROM question")
+        questions = cursor.fetchall()
+
+        result = []
+        for question in questions:
+            cursor.execute("""
+                SELECT id, answer_text, is_correct
+                FROM answers
+                WHERE question_id = ?
+            """, (question['id'],))
+            answers = cursor.fetchall()
+
+            result.append({
+                "id": question['id'],
+                "title": question['titre'],
+                "text": question['texte'],
+                "image": question['image'],
+                "position": question['position'],
+                "possibleAnswers": [
+                    {"id": answer['id'], "text": answer['answer_text'], "isCorrect": answer['is_correct']}
+                    for answer in answers
+                ]
+            })
+
+        conn.close()
+        return result
+
+    except Exception as e:
+        raise Exception(f"Error in fetching all questions: {str(e)}")
+
+
+def get_question_by_position_from_db(position):
+    """
+    Récupère une question par position avec ses réponses associées.
+    """
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Récupérer la question par position
+        cursor.execute("SELECT * FROM question WHERE position = ?", (position,))
+        question = cursor.fetchone()
+
+        if not question:
+            raise Exception(f"Question avec la position {position} non trouvée")
+
+        # Récupérer les réponses associées à la question
+        cursor.execute("""
+            SELECT id, answer_text, is_correct
+            FROM answers
+            WHERE question_id = ?
+        """, (question['id'],))  # Utilisation correcte de question['id']
+        answers = cursor.fetchall()
+
+        conn.close()
+        # Construire la réponse
+        return {
+            "id": question["id"],
+            "title": question["titre"],
+            "text": question["texte"],
+            "image": question["image"],
+            "position": question["position"],
+            "possibleAnswers": [
+                {"id": answer["id"], "text": answer["answer_text"], "isCorrect": answer["is_correct"]}
+                for answer in answers
+            ]
+        }
+
+    except Exception as e:
+        raise Exception(f"Error in fetching question by position: {str(e)}")
+
+
+
+
+def delete_question_by_position_from_db(position):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Vérifier si une question existe à la position donnée
+        cursor.execute("SELECT id FROM question WHERE position = ?", (position,))
+        question = cursor.fetchone()
+
+        if not question:
+            raise Exception(f"Aucune question trouvée à la position {position}")
+
+        question_id = question[0]
+
+        # Supprimer les réponses associées
+        cursor.execute("DELETE FROM answers WHERE question_id = ?", (question_id,))
+
+        # Supprimer la question elle-même
+        cursor.execute("DELETE FROM question WHERE position = ?", (position,))
+
+        # Réajuster les positions des questions restantes
+        cursor.execute("""
+            UPDATE question
+            SET position = position - 1
+            WHERE position > ?
+        """, (position,))
+
+        # Valider les changements
+        conn.commit()
+
+    except Exception as e:
+        # Roulback en cas d'erreur
+        conn.rollback()
+        raise Exception(f"Erreur lors de la suppression de la question à la position {position}: {str(e)}")
+
+    finally:
+        conn.close()

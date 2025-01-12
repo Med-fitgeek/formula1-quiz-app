@@ -1,9 +1,11 @@
 from flask import Blueprint, request, jsonify
 from app.participations_services import calculate_score_and_save, get_all_participations, delete_all_participations, delete_participation_by_id
+from flask_cors import cross_origin
 
 bp = Blueprint('participations', __name__)
 
 @bp.route('/participations', methods=['POST'])
+@cross_origin(origin='*')  # Permet toutes les origines
 def add_participation():
     """
     Enregistre une participation et calcule le score.
@@ -34,6 +36,7 @@ def add_participation():
 
 
 @bp.route('/participations', methods=['GET'])
+@cross_origin(origin='*')  # Permet toutes les origines
 def get_participations():
     """
     Récupère toutes les participations.
@@ -47,6 +50,7 @@ def get_participations():
     
 
 @bp.route('/participations/all', methods=['DELETE'])
+@cross_origin(origin='*')  # Permet toutes les origines
 def clear_participations():
     """
     Supprime toutes les participations.
@@ -60,6 +64,7 @@ def clear_participations():
     
 
 @bp.route('/participations/<int:id>', methods=['DELETE'])
+@cross_origin(origin='*')  # Permet toutes les origines
 def remove_participation(id):
     """
     Supprime une participation spécifique par son ID.
