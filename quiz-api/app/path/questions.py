@@ -1,15 +1,19 @@
 from flask import Blueprint, request, jsonify
 from app.jwt_utils import build_token, decode_token
 from app.auth import authenticate
-from app.questions_services import add_question_to_db, delete_question_by_position_from_db, delete_all_questions_from_db, update_question_in_db,get_quiz_info_from_db
+from app.questions_services import add_question_to_db, delete_question_by_position_from_db, delete_all_questions_from_db, update_question_in_db,get_quiz_info_from_db, get_all_questions_from_db, get_question_by_position_from_db
 import hashlib
 from app.models import get_db_connection
+from flask_cors import cross_origin
+
 
 # Créer un Blueprint pour les routes
 bp = Blueprint('quiz', __name__)
 
 # 2 - Flask creation
 @bp.route('/')
+@cross_origin(origin='*')  # Permet toutes les origines
+
 def hello_world():
     x = 'world'
     return f"Hello, {x}"
@@ -27,6 +31,7 @@ def GetQuizInfo():
 
 # 4 - Authentification
 @bp.route('/login', methods=['POST'])
+@cross_origin(origin='*')  # Permet toutes les origines
 def post_login():
     try:
         payload = request.get_json()
@@ -49,6 +54,7 @@ def post_login():
 
 # 5 - Add question (avec authentification)
 @bp.route('/questions', methods=['POST'])
+@cross_origin(origin='*')  # Permet toutes les origines
 def add_question():
     try:
         authenticate()
@@ -76,67 +82,11 @@ def add_question():
         return jsonify({"error": str(e)}), 500
     
 
-@bp.route('/questions', methods=['GET'])
-def get_all_questions():
-    """
-    Récupère toutes les questions avec leurs réponses associées.
-    """
-    try:
-        # Appeler le service pour récupérer toutes les questions
-        questions = get_all_questions_from_db()
-        return jsonify(questions), 200
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    
-
-@bp.route('/questions/<int:position>', methods=['GET'])
-def get_question_by_position(position):
-    """
-    Récupère une question spécifique par sa position.
-    """
-    try:
-        # Appeler le service pour récupérer une question par position
-        question = get_question_by_position_from_db(position)
-        return jsonify(question), 200
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
-
-@bp.route('/questions/<int:id>', methods=['PUT'])
-def update_question(id):
-    """
-    Met à jour une question spécifique avec ses réponses associées.
-    """
-    try:
-        authenticate()
-
-        payload = request.get_json()
-
-        # Vérification des champs requis
-        if not all(key in payload for key in ['title', 'text', 'image', 'position', 'possibleAnswers']):
-            return jsonify({"error": "Champs manquants"}), 400
-
-        # Extraire les données
-        title = payload['title']
-        text = payload['text']
-        image = payload['image']
-        position = payload['position']
-        possible_answers = payload['possibleAnswers']
-
-        # Appeler le service pour mettre à jour la question
-        update_question_in_db(id, title, text, image, position, possible_answers)
-
-        return jsonify({"message": f"Question avec ID {id} mise à jour avec succès"}), 200
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
 
 # 6 - Delete question
 @bp.route('/questions/<int:position>', methods=['DELETE'])
+@cross_origin(origin='*')  # Permet toutes les origines
 def delete_question(position):
     try:
         authenticate()
@@ -154,6 +104,7 @@ def delete_question(position):
 
 # 7 - Delete all questions
 @bp.route('/questions/all', methods=['DELETE'])
+@cross_origin(origin='*')  # Permet toutes les origines
 def delete_all_questions():
     try:
         authenticate()
@@ -165,10 +116,8 @@ def delete_all_questions():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
 
-# 8 - Get all questions
-@bp.route('/questions', methods=['GET'])
-def get_questions_by_position():
     try:
         # Récupérer la position depuis les paramètres de la requête
         position = request.args.get('position', type=int)
@@ -221,6 +170,7 @@ def get_questions_by_position():
 
 # 6 - Update question at position (avec authentification)
 @bp.route('/questions/<int:question_id>', methods=['PUT'])
+@cross_origin(origin='*')  # Permet toutes les origines
 def update_question(question_id):
     try:
         authenticate()
@@ -244,6 +194,36 @@ def update_question(question_id):
 
         # Retourner une réponse vide avec le statut 204
         return '', 204
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@bp.route('/questions', methods=['GET'])
+@cross_origin(origin='*')  # Permet toutes les origines
+def get_all_questions():
+    """
+    Récupère toutes les questions avec leurs réponses associées.
+    """
+    try:
+        # Appeler le service pour récupérer toutes les questions
+        questions = get_all_questions_from_db()
+        return jsonify(questions), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+
+@bp.route('/questions/<int:position>', methods=['GET'])
+@cross_origin(origin='*')  # Permet toutes les origines
+def get_question_by_position(position):
+    """
+    Récupère une question spécifique par sa position.
+    """
+    try:
+        # Appeler le service pour récupérer une question par position
+        question = get_question_by_position_from_db(position)
+        return jsonify(question), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
