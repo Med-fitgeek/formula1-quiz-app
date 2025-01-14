@@ -44,7 +44,7 @@
   }
   
   h1 {
-    color: #ffd700; /* Couleur dorée pour "Votre Score" */
+    color: #ffd700; 
   }
   
   .actions {

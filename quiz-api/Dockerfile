@@ -8,11 +8,11 @@ WORKDIR /app
 # (répertoire /app, car il s'agit du WORKDIR)
 COPY requirements.txt requirements.txt
 
+# Copier la base de données SQLite préchargée
+COPY quiz.db /app/quiz.db
+
 # Installation des dépendances dans le container
 RUN pip install -r requirements.txt
-
-# Creation d'une base vide
-RUN touch quiz.db
 
 # Variables d'environement de production
 ENV FLASK_DEBUG=0
