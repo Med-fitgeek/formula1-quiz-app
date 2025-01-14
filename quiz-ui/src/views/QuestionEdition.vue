@@ -71,6 +71,7 @@ async function saveQuestion() {
       const response = await quizApiService.updateQuestion(plainQuestion);
       alert("Question mise à jour !");
       console.log("Réponse API :", response.data);
+      window.location.reload();
     } else {
       const response = await quizApiService.createQuestion(plainQuestion);
       alert("Nouvelle question créée !");

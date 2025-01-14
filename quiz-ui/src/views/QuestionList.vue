@@ -19,6 +19,7 @@ function deleteQuestion(id) {
   if (confirm("Supprimer cette question ?")) {
     quizApiService.deleteQuestion(id).then(() => {
       questions.value = questions.value.filter((q) => q.id !== id);
+      window.location.reload();
     });
   }
 }
@@ -58,12 +59,16 @@ async function saveQuestion(updatedQuestion) {
             @cancel="cancelEdit"
           />
         </div>
-
+        
         <!-- Mode affichage -->
-        <div v-else>
-          <span class="question-text">{{ question.text }}</span>
-          <button class="edit-btn" @click="editQuestion(question)">Éditer</button>
-          <button class="delete-btn" @click="deleteQuestion(question.id)">Supprimer</button>
+        <div class="question-line" v-else>
+          <div class="question-line-element">
+            <span class="question-text">{{ question.text }}</span>
+          </div>
+          <div class="question-line-element">
+            <button class="edit-btn" @click="editQuestion(question)"><i class="fas fa-pencil-alt"></i> <!-- Icône de crayon --></button>
+            <button class="delete-btn" @click="deleteQuestion(question.position)"> <i class="fas fa-trash"></i> <!-- Icône de poubelle --></button>
+          </div>       
         </div>
       </li>
     </ul>
@@ -131,4 +136,16 @@ h2 {
 .delete-btn:hover {
   background-color: #a71d2a;
 }
+
+.question-line {
+  display: flex;
+  width: 100%;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center; /* Assure l'alignement vertical des éléments */
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+
 </style>

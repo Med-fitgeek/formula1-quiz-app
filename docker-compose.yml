@@ -4,18 +4,21 @@ services:
   backend:
     image: quiz-local-api
     build:
-      context: ./quiz-api  # Chemin vers votre backend
+      context: ./quiz-api  # Chemin vers le backend
     ports:
       - "5000:5000"       # Expose le backend sur le port 5000
     environment:
       - FLASK_ENV=production
+      - DATABASE_URL=postgresql://user:password@db:5432/quiz
+    depends_on:
+      - db
     networks:
       - quiz-network
 
   frontend:
     image: quiz-local-ui
     build:
-      context: ./quiz-ui  # Chemin vers votre frontend
+      context: ./quiz-ui  # Chemin vers le frontend
     ports:
       - "3000:80"          # Expose le frontend sur le port 3000
     environment:
@@ -23,6 +26,24 @@ services:
     networks:
       - quiz-network
 
+  db:
+    image: postgres:15
+    ports:
+      - "5432:5432"        # Expose la base de données PostgreSQL sur le port 5432
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: quiz
+    volumes:
+      - db_data:/var/lib/postgresql/data  # Volume pour persister les données
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro # Script d'initialisation pour insérer les questions
+    networks:
+      - quiz-network
+
 networks:
   quiz-network:
     driver: bridge
+
+volumes:
+  db_data:
+
