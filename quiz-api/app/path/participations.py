@@ -12,6 +12,7 @@ def add_participation():
     """
     try:
         data = request.get_json()
+        print("Données reçues :", data)
 
         player_name = data.get("playerName")
         answers = data.get("answers")

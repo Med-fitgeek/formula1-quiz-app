@@ -112,7 +112,9 @@ def delete_question(question_id):
     """
     try:
         # Vérifie l'authentification
-        authenticate()
+        auth_response = authenticate()
+        if auth_response:  # Si l'authentification échoue, renvoyer la réponse d'erreur
+            return auth_response
 
         # Appelle la fonction pour supprimer la question par son ID
         delete_question_by_id_from_db(question_id)

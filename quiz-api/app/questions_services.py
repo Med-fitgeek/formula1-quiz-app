@@ -11,9 +11,13 @@ def get_quiz_info_from_db():
         cursor.execute("SELECT COUNT(*) FROM question")
         question_count = cursor.fetchone()[0]
 
-        # Récupérer les scores de la table "participations"
-        cursor.execute("SELECT score FROM participations")
-        scores = [row[0] for row in cursor.fetchall()]  # Liste des scores
+        # Récupérer les noms des joueurs et leurs scores de la table "participations"
+        cursor.execute("""
+            SELECT player_name, score 
+            FROM participations
+            ORDER BY score DESC
+        """)
+        scores = [{"playerName": row[0], "score": row[1]} for row in cursor.fetchall()]  # Liste des scores avec noms
 
         conn.close()
 
@@ -22,6 +26,7 @@ def get_quiz_info_from_db():
 
     except Exception as e:
         raise Exception(f"Erreur lors de la récupération des informations du quiz : {str(e)}")
+
 
 
 def add_question_to_db(title, text, image, position, possible_answers):
@@ -108,13 +113,15 @@ def delete_all_questions_from_db():
         cursor.execute("DELETE FROM answers")
         cursor.execute("DELETE FROM question")
 
-        # Réinitialiser le compteur d'auto-incrémentation pour la table question
-        cursor.execute("UPDATE sqlite_sequence SET seq = 0 WHERE name = 'question'")
+        # Réinitialiser le compteur d'auto-incrémentation pour les tables
+        cursor.execute("DELETE FROM sqlite_sequence WHERE name = 'answers'")
+        cursor.execute("DELETE FROM sqlite_sequence WHERE name = 'question'")
 
         conn.commit()
         conn.close()
     except Exception as e:
         raise Exception(f"Error in deleting all questions: {str(e)}")
+
     
     
 def update_question_in_db(question_id, title, text, image, new_position, possible_answers):
