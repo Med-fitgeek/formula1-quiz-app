@@ -13,11 +13,16 @@ const props = defineProps({
 
 // Variables locales pour gérer les modifications
 const localQuestion = ref({ ...props.question });
+
 const imageBase64 = ref(localQuestion.value.image || "");
 
 // Ajouter une réponse vide si aucune n'existe
 if (!localQuestion.value.possibleAnswers) {
   localQuestion.value.possibleAnswers = [];
+}
+
+if (!localQuestion.value.correctAnswers) {
+  localQuestion.value.correctAnswers = [];
 }
 
 // Ajouter une nouvelle réponse
@@ -30,6 +35,11 @@ function removeAnswer(index) {
   localQuestion.value.possibleAnswers.splice(index, 1);
 }
 
+function markAsCorrect(index) {
+  localQuestion.value.possibleAnswers.forEach((answer, i) => {
+    answer.isCorrect = i === index; // Seule la réponse cliquée devient correcte
+  });
+}
 
 function cancelForm() {
   emit("cancel");
@@ -37,12 +47,39 @@ function cancelForm() {
 
 // Valider les réponses
 function validateQuestion() {
+
+    // Vérifier que le texte de la question est rempli
+    if (!localQuestion.value.text || !localQuestion.value.text.trim()) {
+    alert("Le texte de la question ne peut pas être vide.");
+    return false;
+  }
+
+  // Vérifier que la position de la question est renseignée et valide
+  if (!localQuestion.value.position || isNaN(localQuestion.value.position)) {
+    alert("La position de la question doit être un nombre valide.");
+    return false;
+  }
+
   if (localQuestion.value.possibleAnswers.length === 0) {
     alert("Veuillez ajouter au moins une réponse.");
     return false;
   }
+  if (localQuestion.value.possibleAnswers.length > 4) {
+    alert("Vous ne pouvez pas avoir plus de 4 réponses.");
+    return false;
+  }
   if (!localQuestion.value.possibleAnswers.some((answer) => answer.isCorrect)) {
     alert("Veuillez marquer au moins une réponse comme correcte.");
+    return false;
+  }
+  if (localQuestion.value.correctAnswers.length > 1) {
+    alert("Il ne peut y avoir qu'une seule réponse correcte.");
+    return false;
+  }
+
+  // Vérifier que tous les champs "text" des réponses sont remplis
+  if (localQuestion.value.possibleAnswers.some((answer) => !answer.text.trim())) {
+    alert("Tous les champs de texte des réponses doivent être remplis.");
     return false;
   }
   return true;
@@ -76,6 +113,7 @@ async function saveQuestion() {
       const response = await quizApiService.createQuestion(plainQuestion);
       alert("Nouvelle question créée !");
       console.log("Réponse API :", response.data);
+      window.location.reload();
     }    
   } catch (error) {
     console.error("Erreur lors de la sauvegarde :", error);
@@ -124,6 +162,7 @@ function handleFileChange(base64Image) {
           <input
             type="checkbox"
             v-model="answer.isCorrect"
+            @change="markAsCorrect(index)"
           />
           Correcte
         </label>
@@ -162,6 +201,10 @@ label {
   display: block;
   margin-top: 10px;
   margin-bottom: 5px;
+}
+
+#text {
+  color: #fff;
 }
 
 input,

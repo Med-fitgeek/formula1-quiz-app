@@ -10,7 +10,11 @@ onMounted(async () => {
     console.log("Participations récupérées :", response);
 
     if (response && response.length > 0) {
-      registeredParticipations.value = response;
+      // Trier par ordre décroissant (par exemple, par score)
+      const sortedParticipations = response.sort((a, b) => b.score - a.score);
+
+      // Limiter à 10 participations maximum
+      registeredParticipations.value = sortedParticipations.slice(0, 10);
     } else {
       console.warn("Aucune participation trouvée.");
     }

@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { setAuthHeader } from "@/services/AuthService";
+
 
 console.log("Base URL utilisée par Axios :", import.meta.env.VITE_API_URL);
 
@@ -48,12 +50,15 @@ export default {
     return await axios.get(`${import.meta.env.VITE_API_URL}/questions`);
   },
   async deleteQuestion(id) {
-    return await axios.delete(`${import.meta.env.VITE_API_URL}/questions/${id}`);
+    const headers = setAuthHeader(); // Inclure le token
+    return await axios.delete(`${import.meta.env.VITE_API_URL}/questions/${id}`, { headers });
   },
   async createQuestion(question) {
-    return await axios.post(`${import.meta.env.VITE_API_URL}/questions`, question);
+    const headers = setAuthHeader(); // Inclure le token
+    return await axios.post(`${import.meta.env.VITE_API_URL}/questions`, question, { headers });
   },
   async updateQuestion(question) {
-    return await axios.put(`${import.meta.env.VITE_API_URL}/questions/${question.id}`, question);
+    const headers = setAuthHeader(); // Inclure le token
+    return await axios.put(`${import.meta.env.VITE_API_URL}/questions/${question.id}`, question, { headers });
   },
 };

@@ -31,13 +31,16 @@ export default {
       playerName: playerName,
       answers: answers,
     };
-
+  
+    console.log("Payload envoyé :", payload);
+  
     try {
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/participations`, payload);
-      return response.data; // Retourne les données de la réponse
+      console.log("Réponse reçue :", response.data);
+      return response.data;
     } catch (error) {
-      console.error("Erreur lors de l'envoi des participations :", error);
-      throw error; // Relance l'erreur pour qu'elle soit gérée dans le composant
+      console.error("Erreur lors de l'envoi des participations :", error.response?.data || error);
+      throw error;
     }
-  },
+  }  
 };
