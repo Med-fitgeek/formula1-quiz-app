@@ -10,9 +10,11 @@ def create_app(*args, **kwargs):
     # Enregistrer les Blueprints
     from app.path.questions import bp as quiz_bp
     from app.path.participations import bp as participations_bp
+    from app.path.DB import db_bp as Db_bp
 
     app.register_blueprint(quiz_bp, url_prefix='/')
     app.register_blueprint(participations_bp, url_prefix='/')
+    app.register_blueprint(Db_bp, url_prefix='/')
 
     # Initialiser la base de données si nécessaire
     with app.app_context():

@@ -15,3 +15,6 @@ def authenticate():
         decode_token(token)
     except Exception as e:
         return jsonify({"error": str(e)}), 401
+    
+    # Si l'authentification est réussie, ne rien renvoyer
+    return None

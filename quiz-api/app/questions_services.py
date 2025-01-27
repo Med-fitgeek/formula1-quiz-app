@@ -235,6 +235,8 @@ def get_question_by_position_from_db(position):
         answers = cursor.fetchall()
 
         conn.close()
+        
+        
         # Construire la réponse
         return {
             "id": question["id"],
@@ -243,13 +245,19 @@ def get_question_by_position_from_db(position):
             "image": question["image"],
             "position": question["position"],
             "possibleAnswers": [
-                {"id": answer["id"], "text": answer["answer_text"], "isCorrect": answer["is_correct"]}
+                {
+                    "id": answer["id"],
+                    "text": answer["answer_text"],
+                    "isCorrect": bool(answer["is_correct"])  # Conversion explicite
+                }
                 for answer in answers
             ]
         }
 
     except Exception as e:
+        print(f"Erreur dans la récupération de la question par position : {str(e)}")  # Debug
         raise Exception(f"Error in fetching question by position: {str(e)}")
+
 
 
 
@@ -291,3 +299,83 @@ def delete_question_by_position_from_db(position):
 
     finally:
         conn.close()
+
+
+def get_question_by_id_from_db(question_id):
+    """
+    Récupère une question spécifique par son id avec ses réponses associées.
+    """
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Récupérer la question par id
+        cursor.execute("SELECT * FROM question WHERE id = ?", (question_id,))
+        question = cursor.fetchone()
+
+        if not question:
+            return None  # Aucune question trouvée avec cet id
+
+        # Récupérer les réponses associées à la question
+        cursor.execute("""
+            SELECT id, answer_text, is_correct
+            FROM answers
+            WHERE question_id = ?
+        """, (question['id'],))
+        answers = cursor.fetchall()
+
+        conn.close()
+
+        # Construire la réponse
+        return {
+            "id": question["id"],
+            "title": question["titre"],
+            "text": question["texte"],
+            "image": question["image"],
+            "position": question["position"],
+            "possibleAnswers": [
+                {
+                    "id": answer["id"],
+                    "text": answer["answer_text"],
+                    "isCorrect": bool(answer["is_correct"])  # Conversion explicite
+                }
+                for answer in answers
+            ]
+        }
+
+    except Exception as e:
+        raise Exception(f"Error in fetching question by id: {str(e)}")
+
+def delete_question_by_id_from_db(question_id):
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute("SELECT id, position FROM question WHERE id = ?", (question_id,))
+            question = cursor.fetchone()
+
+            if not question:
+                raise Exception(f"Question avec l'ID {question_id} non trouvée")
+
+            print(f"Question trouvée : {question}")
+
+            question_id, position = question  
+
+            print(f"Suppression de la question avec ID : {question_id}") 
+            cursor.execute("DELETE FROM question WHERE id = ?", (question_id,))
+
+            # Réindexer les positions des autres questions
+            cursor.execute("""
+                UPDATE question
+                SET position = position - 1
+                WHERE position > ?
+            """, (position,))
+
+            conn.commit()
+
+    except Exception as e:
+        print(f"Erreur : {e}")
+        raise e  
+
+
+

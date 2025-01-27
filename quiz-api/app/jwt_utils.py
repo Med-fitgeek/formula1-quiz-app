@@ -27,13 +27,15 @@ def build_token():
             'iat': datetime.datetime.utcnow(),
             'sub': 'quiz-app-admin'
         }
-        return jwt.encode(
+        # Convertir le token en chaîne UTF-8
+        token = jwt.encode(
             payload,
             secret,
             algorithm="HS256"
         )
+        return token
     except Exception as e:
-        return e
+        return str(e)  # Retourner l'exception sous forme de chaîne
 
 
 def decode_token(auth_token):
