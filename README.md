@@ -12,13 +12,17 @@ Une application web interactive permettant aux passionnés de Formule 1 de teste
 
 ##  Aperçu
 
-*(Ajoute ici une capture d'écran de l'application si possible, dans un dossier `assets` par exemple.)*
+![page d'accueil](./quiz-ui/src/assets/accueil.png)
+![page de connexio](./quiz-ui/src//assets/login.png)
+![page dd quiz](./quiz-ui/src/assets/quiz.png)
+
+
 
 ## Technologies utilisées
 
-- Frontend : HTML, CSS, JavaScript (ou React/Angular si applicable)
-- Backend : Node.js / Express.js *(à confirmer selon le code exact)*
-- Base de données : MongoDB / SQLite / autre *(selon le projet)*
+- Frontend : HTML, CSS, JavaScript, Vue.Js
+- Backend : Python, Flask
+- Base de données : PostgreSQL
 - Conteneurisation : Docker / Docker Compose
 
 ##  Lancer le projet en local
